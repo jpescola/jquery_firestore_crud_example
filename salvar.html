@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, query, addDoc } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore-lite.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+
+            // ... INSIRA SUA CONFIGURAÇÃO AQUI
+
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        $(function () {
+            getDocs(query(collection(db, 'produtos'))).then(function (lista) {
+                let linhas = '';
+                let i = 1;
+                lista.forEach(item => {
+                    linhas += `<tr><td>${i++}</td><td>${item.data().nome}</td><td>${item.data().preco}</td></tr>`;
+                });
+                $('#lista').html(linhas);
+            }, function () {
+                alert('erro');
+            });
+
+
+            $('#salvar').click(function () {
+                let produto = {};
+                produto.nome = $('#nome').val();
+                produto.preco = $('#preco').val();
+
+                addDoc(collection(db, 'produtos'), produto).then(
+                    function () {
+                        $('#nome').val('');
+                        $('#preco').val('');
+                        alert('sucesso!');
+                    },
+                    function () {
+                        alert("falha!!!!");
+                    }
+                );
+
+            });
+
+        });
+
+    </script>
+
+</head>
+
+<body>
+
+    Nome: <input type="text" id="nome"><br>
+    Preço: <input type="text" id="preco"><br>
+    <button id="salvar">Salvar</button><br>
+    <br>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Preço</th>
+            </tr>
+        </thead>
+        <tbody id="lista">
+
+        </tbody>
+    </table>
+
+</body>
+
+</html>

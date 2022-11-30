@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, query, addDoc, setDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore-lite.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBFBdbsLtCQ0UWRMyYF2ZGCWGaGazPQpo",
+            authDomain: "loja2-efddf.firebaseapp.com",
+            projectId: "loja2-efddf",
+            storageBucket: "loja2-efddf.appspot.com",
+            messagingSenderId: "731010683408",
+            appId: "1:731010683408:web:308b5c72fd337159fcf095",
+            measurementId: "G-BWJZGYZ11L"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+
+        async function listar() {
+            getDocs(query(collection(db, 'produtos'))).then(function (lista) {
+                let linhas = '';
+                let i = 0;
+                lista.forEach(item => {
+                    linhas += `<tr><td>${i + 1}</td><td>${item.data().nome}</td><td>${item.data().preco}</td>
+                            <td><a href='#' class='alterar' data-id='${i}'>alterar</a></td>
+                            <td><a href='#' class='excluir' data-id='${i}'>excluir</a></td>
+                            </tr>`;
+                    i++;
+                });
+                $('#lista').html(linhas);
+
+
+                $('.alterar').click(function () {
+                    let i = $(this).attr('data-id');
+                    let id = lista.docs[i].id;
+                    let reg = lista.docs[i].data();
+
+                    $('#id').val(id);
+                    $('#nome').val(reg.nome);
+                    $('#preco').val(reg.preco);
+                });
+
+                $('.excluir').click(function () {
+                    let i = $(this).attr('data-id');
+                    let id = lista.docs[i].id;
+                    if (confirm('Tem certeza?'))
+                        excluir(id).then(
+                            function () {
+                                listar();
+                            },
+                            function () {
+                                alert('falha');
+                            }
+                        )
+                });
+
+            }, function () {
+                alert('erro');
+            });
+        }
+
+        async function salvar(produto) {
+            try {
+                if (produto.id) {
+                    let id = produto.id;
+                    delete produto.id;
+                    await setDoc(doc(db, 'produtos', id), produto);
+                }
+                else
+                    await addDoc(collection(db, 'produtos'), produto);
+            } catch (error) {
+                console.error(error);
+                return false;
+            }
+        }
+
+        async function excluir(id) {
+            try {
+                await deleteDoc(doc(db, 'produtos', id));
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        $(function () {
+
+            $('#salvar').click(function () {
+                let produto = {};
+                produto.id = $('#id').val();
+                produto.nome = $('#nome').val();
+                produto.preco = $('#preco').val();
+
+                salvar(produto).then(
+                    function () {
+                        $('#id').val('');
+                        $('#nome').val('');
+                        $('#preco').val('');
+                        alert('sucesso!');
+                        listar();
+                    },
+                    function () {
+                        alert("falha!!!!");
+                    });
+            });
+
+            listar();
+
+        });
+
+    </script>
+
+</head>
+
+<body>
+
+    <input type="hidden" id="id">
+    Nome: <input type="text" id="nome"><br>
+    Preço: <input type="text" id="preco"><br>
+    <button id="salvar">Salvar</button><br>
+    <br>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Preço</th>
+            </tr>
+        </thead>
+        <tbody id="lista">
+
+        </tbody>
+    </table>
+
+</body>
+
+</html>
